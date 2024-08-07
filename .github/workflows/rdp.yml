@@ -34,25 +34,31 @@ jobs:
       run: |
         Get-Service -Name TermService
 
-    - name: Install Node.js and localtunnel
-      run: |
-        choco install nodejs-lts -y
-        npm install -g localtunnel
+    - name: Install OpenVPN
+      run: choco install openvpn -y
 
-    - name: Start localtunnel
-      id: localtunnel
+    - name: Configure OpenVPN
       run: |
-        lt --port 3389 --subdomain myrdp --local-hostname localhost > tunnel.log 2>&1 &
-        Start-Sleep -Seconds 30  # Wait for localtunnel to initialize
+        # Create OpenVPN configuration directory if it doesn't exist
+        if (!(Test-Path "C:\Program Files\OpenVPN\config")) {
+          New-Item -Path "C:\Program Files\OpenVPN\config" -ItemType Directory
+        }
 
-    - name: Display Tunnel URL
+        # Copy the OpenVPN configuration file
+        Copy-Item -Path "magnetissimo.first.ovpn" -Destination "C:\Program Files\OpenVPN\config\magnetissimo.first.ovpn"
+
+    - name: Start OpenVPN
       run: |
-        $tunnelLog = Get-Content -Path 'tunnel.log' -Raw
-        $tunnelUrl = ($tunnelLog | Select-String -Pattern 'your-rdp.localtunnel.me').Line
-        Write-Host "LocalTunnel URL: $tunnelUrl"
+        Start-Service -Name openvpnservice
+        Start-Sleep -Seconds 30  # Wait for VPN to establish connection
+
+    - name: Start RDP Tunnel
+      run: |
+        Start-Process -NoNewWindow -FilePath "cmd.exe" -ArgumentList "/c start /B C:\Program Files\OpenVPN\bin\openvpn.exe --config C:\Program Files\OpenVPN\config\magnetissimo.first.ovpn"
+        Start-Sleep -Seconds 30  # Wait for tunnel to establish
+
+    - name: Display RDP connection information
+      run: |
+        Write-Host "RDP service is now accessible via the OpenVPN tunnel."
         Write-Host "Username: rdpuser"
         Write-Host "Password: SecurePass123"
-
-    - name: Test RDP connection
-      run: |
-        Write-Host "Test the RDP connection using the LocalTunnel URL obtained above."
