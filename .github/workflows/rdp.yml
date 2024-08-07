@@ -61,7 +61,7 @@ jobs:
       env:
         ACCESS_TOKEN: ${{ secrets.LOCALXPOSE_API_KEY }}
       run: |
-        loclx tunnel tcp --to 127.0.0.1:3389 --port 3389 --region eu
+        loclx tunnel https --to 127.0.0.1:3389 --port 3389 --region eu
       shell: powershell
 
 
