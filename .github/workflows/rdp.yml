@@ -1,61 +1,41 @@
-name: Setup and Test RDP with Port Forwarding
+name: Setup RDP and LocalXpose on Windows VM
 
-on: [push, pull_request]
+on: [push]
 
 jobs:
-  setup-rdp:
+  setup:
     runs-on: windows-latest
 
     steps:
-    - name: Check out repository
-      uses: actions/checkout@v2
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-    - name: Install RDP tools
-      run: choco install freerdp -y
+    - name: Install LocalXpose using Chocolatey
+      run: choco install localxpose -y
 
-    - name: Enable Remote Desktop
+    - name: Enable RDP
       run: |
+        Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
+        # Enable RDP
         Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name 'fDenyTSConnections' -Value 0
         Enable-NetFirewallRule -DisplayGroup 'Remote Desktop'
         
-        # Restart Remote Desktop service
-        Stop-Service -Name TermService -Force
-        Start-Service -Name TermService
-
-    - name: Add RDP user
+    - name: Set RDP Password
       run: |
-        $username = "rdpuser"
-        $password = "SecurePass123"  # Ensure password meets complexity requirements
-        $secPassword = ConvertTo-SecureString $password -AsPlainText -Force
-        New-LocalUser -Name $username -Password $secPassword -FullName "RDP User" -Description "User for RDP"
-        Add-LocalGroupMember -Group "Remote Desktop Users" -Member $username
+        $username = "siddhant"
+        $password = "kali"
+        $securePassword = ConvertTo-SecureString $password -AsPlainText -Force
+        $credential = New-Object System.Management.Automation.PSCredential ($username, $securePassword)
+        net user $username $password
 
-    - name: Verify RDP setup
+    - name: Configure LocalXpose for Port Forwarding
       run: |
-        Get-Service -Name TermService
+        localxpose tcp --local-port 3389 --remote-port 3389 --auth ${{ secrets.LOCALXPOSE_API_KEY }}
 
-    - name: Install OpenVPN
-      run: choco install openvpn -y
-
-    - name: Configure OpenVPN
+    - name: Output RDP and LocalXpose Details
       run: |
-        # Create OpenVPN configuration directory if it doesn't exist
-        if (!(Test-Path "C:\Program Files\OpenVPN\config")) {
-          New-Item -Path "C:\Program Files\OpenVPN\config" -ItemType Directory
-        }
-
-        # Copy the OpenVPN configuration file
-        Copy-Item -Path "magnetissimo.first.ovpn" -Destination "C:\Program Files\OpenVPN\config\magnetissimo.first.ovpn"
-
-
-    - name: Connect automatically
-      run: |
-        Invoke-Expression "C:\Program Files\OpenVPN\bin\openvpn-gui.exe --connect magnetissimo.first.ovpn"
-
-
-    - name: Display RDP connection information
-      run: |
-        Write-Host "RDP service is now accessible via the OpenVPN tunnel."
-        Write-Host "Username: rdpuser"
-        Write-Host "Password: SecurePass123"
-
+        Write-Output "RDP is now enabled on the Windows VM. Use the following credentials:"
+        Write-Output "Username: your-username"
+        Write-Output "Password: your-password"
+        Write-Output "LocalXpose is configured to forward port 3389. Use the following details:"
+        Write-Output "API Key: ${{ secrets.LOCALXPOSE_API_KEY }}"
