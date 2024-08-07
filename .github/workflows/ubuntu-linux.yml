@@ -20,9 +20,18 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y xrdp xfce4 xfce4-goodies
+        sudo apt-get install -y desktop-base
+        sudo apt-get install -y ubuntu-desktop
+
+    - name: Configure xrdp to use xfce4
+      run: |
+        echo "xfce4-session" > ~/.xsession
+        sudo sed -i 's/\/etc\/X11\/Xsession/\/etc\/X11\/Xsession.d\/60xrdp/' /etc/xrdp/startwm.sh
+
+    - name: Start xrdp
+      run: |
         sudo systemctl enable xrdp
         sudo systemctl start xrdp
-        echo "xfce4-session" > ~/.xsession
 
     - name: Create RDP User
       run: |
