@@ -23,6 +23,9 @@ jobs:
 
     - name: Set Password
       run: Set-LocalUser -Name "runneradmin" -Password (ConvertTo-SecureString -AsPlainText "P@ssw0rd!" -Force)
-
+    
+    - name: Get Ip addresses
+    - run: ipconfig/all
+    
     - name: Create Tunnel
       run: lt --port 3389
