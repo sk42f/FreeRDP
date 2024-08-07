@@ -47,10 +47,14 @@ jobs:
         # Copy the OpenVPN configuration file
         Copy-Item -Path "magnetissimo.first.ovpn" -Destination "C:\Program Files\OpenVPN\config\magnetissimo.first.ovpn"
 
-    - name: Start OpenVPN
+    - name: Start OpenVPN Service
       run: |
-        Start-Process -NoNewWindow -FilePath "C:\Program Files\OpenVPN\bin\openvpn.exe" -ArgumentList "--config C:\OpenVPNConfig\magnetissimo.first.ovpn"
-        Start-Sleep -Seconds 10  # Wait for VPN to establish connection
+        Start-Service -Name "OpenVPNService"
+
+    - name: Connect automatically
+      run: |
+        Invoke-Expression "C:\Program Files\OpenVPN\bin\openvpn-gui.exe --connect client.ovpn"
+
 
     - name: Display RDP connection information
       run: |
