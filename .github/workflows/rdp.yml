@@ -10,15 +10,8 @@ jobs:
     - name: Check out repository
       uses: actions/checkout@v2
 
-    - name: Install RDP tools
-      run: |
-        # Install Chocolatey
-        Set-ExecutionPolicy Bypass -Scope Process -Force; 
-        [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; 
-        iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
-
-        # Install xfreerdp
-        choco install freerdp -y
+    - name: Install xfreerdp
+      run: choco install freerdp -y
 
     - name: Enable RDP
       run: |
@@ -28,7 +21,7 @@ jobs:
     - name: Set up RDP user
       run: |
         $username = "rdpuser"
-        $password = "SecurePassword123!"  # Replace with a secure password or use secrets
+        $password = "SecurePass123!"  # Use a shorter, strong password
         net user /add $username $password
         net localgroup "Remote Desktop Users" /add $username
 
@@ -38,4 +31,4 @@ jobs:
         Write-Host "Connect using the following credentials:"
         Write-Host "IP Address: $ip"
         Write-Host "Username: rdpuser"
-        Write-Host "Password: SecurePassword123!"
+        Write-Host "Password: SecurePass123!"
