@@ -23,7 +23,7 @@ jobs:
     - name: Ensure RDP User Exists
       run: |
         $username = "siddhant"
-        $password = "kali"
+        $password = "Siddhant123"
         # Check if the user exists
         $user = Get-LocalUser -Name $username -ErrorAction SilentlyContinue
         if (-not $user) {
