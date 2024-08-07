@@ -46,7 +46,7 @@ jobs:
 
     - name: Set up Serveo tunnel
       run: |
-        $sshCommand = "ssh -R 3389:localhost:3389 serveo.net"
+        $sshCommand = "ssh -T -R 3389:localhost:3389 serveo.net"
         Start-Process -NoNewWindow -FilePath "cmd.exe" -ArgumentList "/c $sshCommand" -PassThru | Wait-Process
 
     - name: Wait for Serveo to initialize
