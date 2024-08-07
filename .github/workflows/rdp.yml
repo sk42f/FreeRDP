@@ -21,7 +21,7 @@ jobs:
 
     - name: Add LocalXpose to PATH
       run: |
-        $env:PATH += ";C:\ProgramData\chocolatey\bin"
+        $env:PATH += ";C:\ProgramData\chocolatey\lib\localxpose\tools"
         [System.Environment]::SetEnvironmentVariable('PATH', $env:PATH, [System.EnvironmentVariableTarget]::Machine)
 
     - name: Enable RDP
