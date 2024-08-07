@@ -37,11 +37,12 @@ jobs:
     - name: Install SSH client
       run: choco install openssh -y
 
-    - name: Create SSH key pair if it doesn't exist
+    - name: Ensure .ssh directory exists
       run: |
-        if (!(Test-Path "$env:USERPROFILE\.ssh\id_rsa")) {
-          ssh-keygen -t rsa -b 4096 -f "$env:USERPROFILE\.ssh\id_rsa" -N ""
+        if (!(Test-Path "$env:USERPROFILE\.ssh")) {
+          New-Item -Path "$env:USERPROFILE\.ssh" -ItemType Directory
         }
+
 
     - name: Set up Serveo tunnel
       run: |
