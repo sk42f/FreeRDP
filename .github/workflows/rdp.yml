@@ -40,7 +40,7 @@ jobs:
     - name: Configure ngrok with auth token
       run: |
         $ngrokToken = $env:NGROK_AUTH_TOKEN
-        ngrok authtoken $ngrokToken
+        ngrok authtoken 2kKAOqkIqm80CHXFgQGpPfECp4P_6kMHaMwhfm1YfCsE4V2nv
 
     - name: Start ngrok for port forwarding
       run: |
