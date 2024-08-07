@@ -43,9 +43,19 @@ jobs:
         Write-Host "Username: rdpuser"
         Write-Host "Password: SecurePass123"
 
+    - name: Verify xfreerdp installation
+      run: |
+        $xfreerdpPath = (Get-Command xfreerdp).Source
+        if (-Not (Test-Path $xfreerdpPath)) {
+          Write-Error "xfreerdp not found at expected path"
+        } else {
+          Write-Host "xfreerdp found at $xfreerdpPath"
+        }
+
     - name: Test RDP connection
       run: |
         $ip = (Invoke-RestMethod -Uri 'http://ipinfo.io/json').ip
-        $command = "xfreerdp /u:rdpuser /p:SecurePass123 /v:$ip"
+        $xfreerdpPath = (Get-Command xfreerdp).Source
+        $command = "$xfreerdpPath /u:rdpuser /p:SecurePass123 /v:$ip"
         Write-Host "Running command: $command"
-        Start-Process -NoNewWindow -FilePath "xfreerdp.exe" -ArgumentList "/u:rdpuser /p:SecurePass123 /v:$ip"
+        Start-Process -NoNewWindow -FilePath $xfreerdpPath -ArgumentList "/u:rdpuser /p:SecurePass123 /v:$ip"
