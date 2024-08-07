@@ -17,13 +17,18 @@ jobs:
       run: |
         Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name 'fDenyTSConnections' -Value 0
         Enable-NetFirewallRule -DisplayGroup 'Remote Desktop'
+        Restart-Service -Name TermService
 
     - name: Set up RDP user
       run: |
         $username = "rdpuser"
-        $password = "SecurePass123!"  # Use a shorter, strong password
-        net user /add $username $password
-        net localgroup "Remote Desktop Users" /add $username
+        $password = "SecurePass123"  # Shortened password to meet the requirement
+        net user /add $username $password /Y
+        net localgroup "Remote Desktop Users" $username /add
+
+    - name: Verify RDP service status
+      run: |
+        Get-Service -Name TermService
 
     - name: Display RDP connection information
       run: |
@@ -31,4 +36,11 @@ jobs:
         Write-Host "Connect using the following credentials:"
         Write-Host "IP Address: $ip"
         Write-Host "Username: rdpuser"
-        Write-Host "Password: SecurePass123!"
+        Write-Host "Password: SecurePass123"
+
+    - name: Test RDP connection
+      run: |
+        $ip = (Invoke-RestMethod -Uri 'http://ipinfo.io/json').ip
+        $command = "xfreerdp /u:rdpuser /p:SecurePass123 /v:$ip"
+        Write-Host "Running command: $command"
+        Start-Process -NoNewWindow -FilePath "xfreerdp.exe" -ArgumentList "/u:rdpuser /p:SecurePass123 /v:$ip"
