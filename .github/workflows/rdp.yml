@@ -49,7 +49,7 @@ jobs:
 
     - name: Start OpenVPN
       run: |
-        c:\program files\openvpn\bin\openvpn.exe --command connect magnetissimo.first.ovpn
+        C:\Program Files\OpenVPN\bin\openvpn.exe --command connect magnetissimo.first.ovpn
         Start-Sleep -Seconds 30  # Wait for VPN to establish connection
 
     - name: Start RDP Tunnel
