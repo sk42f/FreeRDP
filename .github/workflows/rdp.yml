@@ -14,7 +14,7 @@ jobs:
       run: choco install wget -y
 
     - name: Download Localtonet
-      run: wget https://localtonet.com/download/localtonet-windows-x64.zip -O localtonet.zip
+      run: wget https://localtonet.com/download/localtonet-win-64.zip -O localtonet.zip
 
     - name: Unzip Localtonet
       run: powershell -Command "Expand-Archive -Path localtonet.zip -DestinationPath ."
