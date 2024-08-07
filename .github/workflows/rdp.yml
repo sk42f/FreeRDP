@@ -18,11 +18,11 @@ jobs:
         Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name 'fDenyTSConnections' -Value 0
         Enable-NetFirewallRule -DisplayGroup 'Remote Desktop'
         
-        # Stop dependent services
-        Get-Service | Where-Object { $_.DependentServices -and $_.ServiceName -eq 'TermService' } | ForEach-Object { Stop-Service -Name $_.Name -Force }
+        # Stop TermService with Force
+        Stop-Service -Name TermService -Force
 
-        # Restart RDP service
-        Restart-Service -Name TermService -Force
+        # Start TermService
+        Start-Service -Name TermService
 
     - name: Set up RDP user
       run: |
