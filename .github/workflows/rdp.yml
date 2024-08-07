@@ -10,11 +10,8 @@ jobs:
     - name: Check out repository
       uses: actions/checkout@v2
 
-    - name: Install ngrok
-      run: |
-        Invoke-WebRequest -Uri https://bin.equinox.io/c/4b7g5yShkTg/ngrok-stable-windows-amd64.zip -OutFile ngrok.zip
-        Expand-Archive -Path ngrok.zip -DestinationPath C:\ngrok
-        [Environment]::SetEnvironmentVariable("PATH", "$env:PATH;C:\ngrok", [EnvironmentVariableTarget]::Machine)
+    - name: Install ngrok using Chocolatey
+      run: choco install ngrok -y
 
     - name: Install RDP tools
       run: choco install freerdp -y
@@ -43,20 +40,24 @@ jobs:
     - name: Configure ngrok with auth token
       run: |
         $ngrokToken = $env:NGROK_AUTH_TOKEN
-        & "ngrok.exe" authtoken $ngrokToken
+        ngrok authtoken $ngrokToken
 
     - name: Start ngrok for port forwarding
       run: |
-        Start-Process -NoNewWindow -FilePath "ngrok.exe" -ArgumentList "tcp 3389"
+        Start-Process -NoNewWindow -FilePath "ngrok.exe" -ArgumentList "tcp 3389" -PassThru | Wait-Process
 
     - name: Wait for ngrok to initialize
       run: |
-        Start-Sleep -Seconds 10
+        Start-Sleep -Seconds 20  # Increase wait time
 
     - name: Get ngrok public URL
       id: ngrok
       run: |
         $ngrokInfo = Invoke-RestMethod -Uri http://localhost:4040/api/tunnels
+        if ($ngrokInfo -eq $null -or $ngrokInfo.tunnels.Count -eq 0) {
+          Write-Error "Failed to retrieve ngrok tunnel information"
+          exit 1
+        }
         $publicUrl = $ngrokInfo.tunnels[0].public_url
         Write-Output "ngrok_url=$publicUrl" >> $env:GITHUB_ENV
 
@@ -71,7 +72,5 @@ jobs:
     - name: Test RDP connection
       run: |
         $publicUrl = $env:ngrok_url
-        $rdpPort = [regex]::Match($publicUrl, ':(\d+)$').Groups[1].Value
-        $rdpCommand = "mstsc /v:$publicUrl /admin"
-        Write-Host "Running command: $rdpCommand"
-        Start-Process -NoNewWindow -FilePath "mstsc.exe" -ArgumentList "/v:$publicUrl /admin"
+        Write-Host "Testing RDP connection to $publicUrl"
+        Start-Process -NoNewWindow -FilePath "mstsc.exe" -ArgumentList "/v:$publicUrl"
