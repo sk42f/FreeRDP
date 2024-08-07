@@ -49,7 +49,7 @@ jobs:
 
     - name: Start OpenVPN
       run: |
-        Start-Process -NoNewWindow -FilePath "C:\Program Files\OpenVPN\bin\openvpn.exe" -ArgumentList "C:\Program Files\OpenVPN\config\magnetissimo.first.ovpn"
+        Start-Process -NoNewWindow -FilePath "C:\Program Files\OpenVPN\bin\openvpn.exe" -ArgumentList "--config C:\OpenVPNConfig\magnetissimo.first.ovpn"
         Start-Sleep -Seconds 10  # Wait for VPN to establish connection
 
     - name: Display RDP connection information
