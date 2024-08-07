@@ -1,4 +1,4 @@
-name: Setup RDP and LocalXpose on Windows VM
+name: Setup RDP and Localtonet on Windows VM
 
 on: [push]
 
@@ -10,19 +10,17 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Install LocalXpose using Chocolatey
-      run: choco install localxpose -y
+    - name: Install wget
+      run: choco install wget -y
 
-    - name: Print PATH Environment Variable
-      run: echo $Env:PATH
+    - name: Download Localtonet
+      run: wget https://localtonet.com/download/localtonet-windows-x64.zip -O localtonet.zip
 
-    - name: List LocalXpose Files
-      run: dir C:\ProgramData\chocolatey\bin
+    - name: Unzip Localtonet
+      run: powershell -Command "Expand-Archive -Path localtonet.zip -DestinationPath ."
 
-    - name: Add LocalXpose to PATH
-      run: |
-        $env:PATH += ";C:\ProgramData\chocolatey\bin"
-        [System.Environment]::SetEnvironmentVariable('PATH', $env:PATH, [System.EnvironmentVariableTarget]::Machine)
+    - name: Make Localtonet Executable
+      run: chmod +x ./localtonet
 
     - name: Enable RDP
       run: |
@@ -48,27 +46,7 @@ jobs:
           Set-LocalUser -Name $username -Password $securePassword
         }
 
-    - name: Get help commands
-      run: |
-        loclx start -h
-
-    - name: Configure LocalXpose for Port Forwarding
-      run: |
-        # Confirm LocalXpose path and then configure
-        loclx start --tcp 3389 --auth ${{ secrets.LOCALXPOSE_API_KEY }}
-
-    - name: Set LocalXpose Access Token
+    - name: Configure Localtonet for Port Forwarding
       env:
-        ACCESS_TOKEN: ${{ secrets.LOCALXPOSE_API_KEY }}
-      run: |
-        loclx tunnel https --to 127.0.0.1:3389 --port 3389 --region eu
-      shell: powershell
-
-
-    - name: Output RDP and LocalXpose Details
-      run: |
-        Write-Output "RDP is now enabled on the Windows VM. Use the following credentials:"
-        Write-Output "Username: your-username"
-        Write-Output "Password: P@ssw0rd!2024"
-        Write-Output "LocalXpose is configured to forward port 3389. Use the following details:"
-        Write-Output "API Key: ${{ secrets.LOCALXPOSE_API_KEY }}"
+        AUTHTOKEN: ${{ secrets.LOCALTONET_AUTH_TOKEN }}
+      run: ./localtonet authtoken $AUTHTOKEN && ./localtonet tcp 3389
