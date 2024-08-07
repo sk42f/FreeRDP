@@ -1,0 +1,39 @@
+name: Setup Ubuntu VM with RDP and Bore
+
+on: [push]
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v3
+
+    - name: Install Bore
+      run: |
+        wget https://github.com/ekzhang/bore/releases/download/v0.5.1/bore-v0.5.1-x86_64-unknown-linux-musl.tar.gz
+        tar -xzf bore-v0.5.1-x86_64-unknown-linux-musl.tar.gz
+        chmod +x ./bore
+
+    - name: Install xrdp and xfce4
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y xrdp xfce4 xfce4-goodies
+        sudo systemctl enable xrdp
+        sudo systemctl start xrdp
+        echo "xfce4-session" > ~/.xsession
+
+    - name: Create RDP User
+      run: |
+        sudo adduser --quiet --disabled-password --shell /bin/bash --home /home/rdpuser --gecos 'RDP User' rdpuser
+        echo "rdpuser:P@ssw0rd2024" | sudo chpasswd
+        sudo usermod -aG sudo rdpuser
+
+    - name: Start Bore for Port Forwarding
+      run: ./bore local 3389 --to bore.pub
+
+    - name: Open RDP Port in Firewall
+      run: |
+        sudo ufw allow 3389/tcp
+        sudo ufw reload
