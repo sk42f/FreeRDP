@@ -50,12 +50,12 @@ jobs:
 
     - name: Get help commands
       run: |
-        loclx account login --auth ${{ secrets.LOCALXPOSE_API_KEY }}
+        loclx start -h
 
     - name: Configure LocalXpose for Port Forwarding
       run: |
         # Confirm LocalXpose path and then configure
-        loclx tcp --local-port 3389 --remote-port 3389 
+        loclx start --tcp 3389 --auth ${{ secrets.LOCALXPOSE_API_KEY }}
 
     - name: Output RDP and LocalXpose Details
       run: |
