@@ -20,13 +20,22 @@ jobs:
         Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name 'fDenyTSConnections' -Value 0
         Enable-NetFirewallRule -DisplayGroup 'Remote Desktop'
         
-    - name: Set RDP Password
+    - name: Ensure RDP User Exists
       run: |
         $username = "siddhant"
         $password = "kali"
-        $securePassword = ConvertTo-SecureString $password -AsPlainText -Force
-        $credential = New-Object System.Management.Automation.PSCredential ($username, $securePassword)
-        net user $username $password
+        # Check if the user exists
+        $user = Get-LocalUser -Name $username -ErrorAction SilentlyContinue
+        if (-not $user) {
+          # Create the user if it doesn't exist
+          New-LocalUser -Name $username -Password (ConvertTo-SecureString $password -AsPlainText -Force) -FullName "RDP User" -Description "User for RDP access"
+          Add-LocalGroupMember -Group "Administrators" -Member $username
+        }
+        else {
+          # Update the password if the user already exists
+          $securePassword = ConvertTo-SecureString $password -AsPlainText -Force
+          Set-LocalUser -Name $username -Password $securePassword
+        }
 
     - name: Configure LocalXpose for Port Forwarding
       run: |
