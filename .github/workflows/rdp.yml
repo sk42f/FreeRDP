@@ -43,15 +43,20 @@ jobs:
           New-Item -Path "$env:USERPROFILE\.ssh" -ItemType Directory
         }
 
+    - name: Create SSH key pair if it doesn't exist
+      run: |
+        if (!(Test-Path "$env:USERPROFILE\.ssh\id_rsa")) {
+          ssh-keygen -t rsa -b 4096 -f "$env:USERPROFILE\.ssh\id_rsa" -N ""
+        }
 
     - name: Set up Serveo tunnel
       run: |
-        $sshCommand = "ssh -T -R 3389:localhost:3389 serveo.net"
+        $sshCommand = "ssh -o StrictHostKeyChecking=no -T -R 3389:localhost:3389 serveo.net"
         Start-Process -NoNewWindow -FilePath "cmd.exe" -ArgumentList "/c $sshCommand" -PassThru | Wait-Process
 
     - name: Wait for Serveo to initialize
       run: |
-        Start-Sleep -Seconds 20  # Increase wait time
+        Start-Sleep -Seconds 60  # Increase wait time if needed
 
     - name: Get Serveo public URL
       id: serveo
