@@ -34,41 +34,18 @@ jobs:
       run: |
         Get-Service -Name TermService
 
-    - name: Install SSH client
-      run: choco install openssh -y
-
-    - name: Ensure .ssh directory exists
+    - name: Install Node.js and localtunnel
       run: |
-        if (!(Test-Path "$env:USERPROFILE\.ssh")) {
-          New-Item -Path "$env:USERPROFILE\.ssh" -ItemType Directory
-        }
+        choco install nodejs-lts -y
+        npm install -g localtunnel
 
-    - name: Create SSH key pair if it doesn't exist
+    - name: Start localtunnel
       run: |
-        if (!(Test-Path "$env:USERPROFILE\.ssh\id_rsa")) {
-          ssh-keygen -t rsa -b 4096 -f "$env:USERPROFILE\.ssh\id_rsa" -N ""
-        }
-
-    - name: Set up Serveo tunnel
-      run: |
-        $sshCommand = "ssh -o StrictHostKeyChecking=no -T -R 3389:localhost:3389 serveo.net"
-        Start-Process -NoNewWindow -FilePath "cmd.exe" -ArgumentList "/c $sshCommand" -PassThru | Wait-Process
-
-    - name: Wait for Serveo to initialize
-      run: |
-        Start-Sleep -Seconds 60  # Increase wait time if needed
-
-    - name: Get Serveo public URL
-      id: serveo
-      run: |
-        Write-Host "Please manually check Serveo for the public URL. Serveo does not provide a direct API for URL retrieval."
+        lt --port 3389 --subdomain your-custom-subdomain --local-hostname localhost &
+        Start-Sleep -Seconds 30  # Wait for localtunnel to initialize
 
     - name: Display RDP connection information
       run: |
-        Write-Host "Connect using the Serveo URL obtained manually."
+        Write-Host "Connect using the localtunnel URL obtained from the 'lt' command."
         Write-Host "Username: rdpuser"
         Write-Host "Password: SecurePass123"
-
-    - name: Test RDP connection
-      run: |
-        Write-Host "Test the RDP connection using the Serveo URL obtained manually."
