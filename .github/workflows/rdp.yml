@@ -47,9 +47,6 @@ jobs:
         # Copy the OpenVPN configuration file
         Copy-Item -Path "magnetissimo.first.ovpn" -Destination "C:\Program Files\OpenVPN\config\magnetissimo.first.ovpn"
 
-    - name: Start OpenVPN Service
-      run: |
-        Start-Service -Name "OpenVPNService"
 
     - name: Connect automatically
       run: |
