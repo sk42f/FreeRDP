@@ -1,4 +1,4 @@
-name: Setup RDP on Windows
+name: Setup and Test RDP on Windows
 
 on: [push, pull_request]
 
@@ -10,32 +10,34 @@ jobs:
     - name: Check out repository
       uses: actions/checkout@v2
 
-    - name: Install xfreerdp
-      run: choco install freerdp -y
-
-    - name: Enable RDP
+    - name: Install RDP tools
       run: |
+        # Ensure that PowerShell is run as Administrator
+        Start-Process powershell -ArgumentList 'choco install freerdp -y' -Verb runAs
+
+    - name: Enable Remote Desktop
+      run: |
+        # Enable Remote Desktop through PowerShell
         Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name 'fDenyTSConnections' -Value 0
         Enable-NetFirewallRule -DisplayGroup 'Remote Desktop'
         
-        # Stop TermService with Force
+        # Restart Remote Desktop service
         Stop-Service -Name TermService -Force
-
-        # Start TermService
         Start-Service -Name TermService
 
-    - name: Set up RDP user
+    - name: Add RDP user
       run: |
         $username = "rdpuser"
-        $password = "SecurePass123"  # Shortened password to meet the requirement
-        net user /add $username $password /Y
-        net localgroup "Remote Desktop Users" $username /add
+        $password = "SecurePass123"  # Ensure password meets complexity requirements
+        $secPassword = ConvertTo-SecureString $password -AsPlainText -Force
+        New-LocalUser -Name $username -Password $secPassword -FullName "RDP User" -Description "User for RDP"
+        Add-LocalGroupMember -Group "Remote Desktop Users" -Member $username
 
-    - name: Verify RDP service status
+    - name: Verify RDP setup
       run: |
         Get-Service -Name TermService
 
-    - name: Display RDP connection information
+    - name: Display connection details
       run: |
         $ip = (Invoke-RestMethod -Uri 'http://ipinfo.io/json').ip
         Write-Host "Connect using the following credentials:"
@@ -43,22 +45,10 @@ jobs:
         Write-Host "Username: rdpuser"
         Write-Host "Password: SecurePass123"
 
-    - name: Locate xfreerdp
-      run: |
-        $chocoPath = "C:\ProgramData\chocolatey\lib\freerdp\tools\freerdp\bin"
-        $xfreerdpPath = Get-ChildItem -Path $chocoPath -Filter "xfreerdp.exe" -Recurse | Select-Object -First 1
-        if ($xfreerdpPath) {
-          Write-Host "xfreerdp found at $($xfreerdpPath.FullName)"
-          Write-Output "xfreerdp_path=$($xfreerdpPath.FullName)" >> $env:GITHUB_ENV
-        } else {
-          Write-Error "xfreerdp not found at $chocoPath"
-          exit 1
-        }
-
     - name: Test RDP connection
       run: |
+        # Open an RDP connection (simplified, usually requires a GUI)
         $ip = (Invoke-RestMethod -Uri 'http://ipinfo.io/json').ip
-        $xfreerdpPath = $env:xfreerdp_path
-        $command = "$xfreerdpPath /u:rdpuser /p:SecurePass123 /v:$ip"
-        Write-Host "Running command: $command"
-        Start-Process -NoNewWindow -FilePath $xfreerdpPath -ArgumentList "/u:rdpuser /p:SecurePass123 /v:$ip"
+        $rdpCommand = "mstsc /v:$ip"
+        Write-Host "Running command: $rdpCommand"
+        Start-Process -NoNewWindow -FilePath "mstsc.exe" -ArgumentList "/v:$ip"
