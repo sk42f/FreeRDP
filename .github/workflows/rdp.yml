@@ -48,6 +48,10 @@ jobs:
           Set-LocalUser -Name $username -Password $securePassword
         }
 
+    - name: Get help commands
+      run: |
+        loclx --help
+
     - name: Configure LocalXpose for Port Forwarding
       run: |
         # Confirm LocalXpose path and then configure
