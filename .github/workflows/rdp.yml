@@ -50,7 +50,7 @@ jobs:
 
     - name: Get help commands
       run: |
-        loclx account login -h
+        loclx account login
 
     - name: Configure LocalXpose for Port Forwarding
       run: |
