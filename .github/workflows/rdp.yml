@@ -43,14 +43,22 @@ jobs:
         Write-Host "Username: rdpuser"
         Write-Host "Password: SecurePass123"
 
+    - name: Locate xfreerdp
+      run: |
+        $chocoPath = "C:\ProgramData\chocolatey\lib\freerdp\tools\freerdp\bin"
+        $xfreerdpPath = Get-ChildItem -Path $chocoPath -Filter "xfreerdp.exe" -Recurse | Select-Object -First 1
+        if ($xfreerdpPath) {
+          Write-Host "xfreerdp found at $($xfreerdpPath.FullName)"
+          Write-Output "xfreerdp_path=$($xfreerdpPath.FullName)" >> $env:GITHUB_ENV
+        } else {
+          Write-Error "xfreerdp not found at $chocoPath"
+          exit 1
+        }
+
     - name: Test RDP connection
       run: |
         $ip = (Invoke-RestMethod -Uri 'http://ipinfo.io/json').ip
-        $xfreerdpPath = "C:\ProgramData\chocolatey\lib\freerdp\tools\freerdp\bin\xfreerdp.exe"
-        if (-Not (Test-Path $xfreerdpPath)) {
-          Write-Error "xfreerdp not found at $xfreerdpPath"
-        } else {
-          $command = "$xfreerdpPath /u:rdpuser /p:SecurePass123 /v:$ip"
-          Write-Host "Running command: $command"
-          Start-Process -NoNewWindow -FilePath $xfreerdpPath -ArgumentList "/u:rdpuser /p:SecurePass123 /v:$ip"
-        }
+        $xfreerdpPath = $env:xfreerdp_path
+        $command = "$xfreerdpPath /u:rdpuser /p:SecurePass123 /v:$ip"
+        Write-Host "Running command: $command"
+        Start-Process -NoNewWindow -FilePath $xfreerdpPath -ArgumentList "/u:rdpuser /p:SecurePass123 /v:$ip"
