@@ -39,7 +39,10 @@ jobs:
 
     - name: Configure LocalXpose for Port Forwarding
       run: |
+        # Confirm LocalXpose path and then configure
+        $env:PATH += ";C:\ProgramData\chocolatey\bin"  # Ensure the path is set
         localxpose tcp --local-port 3389 --remote-port 3389 --auth ${{ secrets.LOCALXPOSE_API_KEY }}
+
 
     - name: Output RDP and LocalXpose Details
       run: |
