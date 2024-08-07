@@ -10,9 +10,6 @@ jobs:
     - name: Check out repository
       uses: actions/checkout@v2
 
-    - name: Install ngrok using Chocolatey
-      run: choco install ngrok -y
-
     - name: Install RDP tools
       run: choco install freerdp -y
 
@@ -37,40 +34,38 @@ jobs:
       run: |
         Get-Service -Name TermService
 
-    - name: Configure ngrok with auth token
+    - name: Set up Serveo tunnel
       run: |
-        $ngrokToken = $env:NGROK_AUTH_TOKEN
-        ngrok authtoken 2kKAOqkIqm80CHXFgQGpPfECp4P_6kMHaMwhfm1YfCsE4V2nv
+        # Install OpenSSH if not already installed
+        choco install openssh -y
+        Start-Service ssh-agent
+        Set-Service -Name ssh-agent -StartupType Automatic
 
-    - name: Start ngrok for port forwarding
-      run: |
-        Start-Process -NoNewWindow -FilePath "ngrok.exe" -ArgumentList "tcp 3389" -PassThru | Wait-Process
+        # Create SSH key pair if it doesn't exist
+        if (!(Test-Path "$env:USERPROFILE\.ssh\id_rsa")) {
+          ssh-keygen -t rsa -b 4096 -f "$env:USERPROFILE\.ssh\id_rsa" -N ""
+        }
 
-    - name: Wait for ngrok to initialize
+        # Connect to Serveo to create a tunnel
+        Start-Process -NoNewWindow -FilePath "ssh.exe" -ArgumentList "-R 3389:localhost:3389 serveo.net" -PassThru | Wait-Process
+
+    - name: Wait for Serveo to initialize
       run: |
         Start-Sleep -Seconds 20  # Increase wait time
 
-    - name: Get ngrok public URL
-      id: ngrok
+    - name: Get Serveo public URL
+      id: serveo
       run: |
-        $ngrokInfo = Invoke-RestMethod -Uri http://localhost:4040/api/tunnels
-        if ($ngrokInfo -eq $null -or $ngrokInfo.tunnels.Count -eq 0) {
-          Write-Error "Failed to retrieve ngrok tunnel information"
-          exit 1
-        }
-        $publicUrl = $ngrokInfo.tunnels[0].public_url
-        Write-Output "ngrok_url=$publicUrl" >> $env:GITHUB_ENV
+        # Serveo does not provide a REST API like ngrok, so this step is manual
+        Write-Output "Please manually check Serveo for the public URL"
 
     - name: Display RDP connection information
       run: |
-        $publicUrl = $env:ngrok_url
-        Write-Host "Connect using the following credentials:"
-        Write-Host "Public URL: $publicUrl"
+        Write-Host "Connect using the Serveo URL obtained manually."
         Write-Host "Username: rdpuser"
         Write-Host "Password: SecurePass123"
 
     - name: Test RDP connection
       run: |
-        $publicUrl = $env:ngrok_url
-        Write-Host "Testing RDP connection to $publicUrl"
-        Start-Process -NoNewWindow -FilePath "mstsc.exe" -ArgumentList "/v:$publicUrl"
+        # Display a message to manually test the connection
+        Write-Host "Test the RDP connection using the Serveo URL."
