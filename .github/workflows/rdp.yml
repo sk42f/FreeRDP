@@ -49,8 +49,9 @@ jobs:
 
     - name: Start OpenVPN
       run: |
-        C:\Program Files\OpenVPN\bin\openvpn.exe --command connect magnetissimo.first.ovpn
+        Start-Process -NoNewWindow -FilePath "C:\Program Files\OpenVPN\bin\openvpn.exe" -ArgumentList "--config C:\Program Files\OpenVPN\config\magnetissimo.first.ovpn"
         Start-Sleep -Seconds 30  # Wait for VPN to establish connection
+
 
     - name: Start RDP Tunnel
       run: |
