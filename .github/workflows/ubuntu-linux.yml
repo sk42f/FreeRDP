@@ -43,5 +43,6 @@ jobs:
       run: |
         sudo ufw allow 3389/tcp
         sudo ufw reload
+        
     - name: Start Bore for Port Forwarding
       run: ./bore local 3389 --to bore.pub
