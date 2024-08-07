@@ -57,6 +57,14 @@ jobs:
         # Confirm LocalXpose path and then configure
         loclx start --tcp 3389 --auth ${{ secrets.LOCALXPOSE_API_KEY }}
 
+    - name: Set LocalXpose Access Token
+      env:
+        ACCESS_TOKEN: ${{ secrets.LOCALXPOSE_API_KEY }}
+      run: |
+        loclx tunnel tcp --to 127.0.0.1:3389 --port 3389 --region eu
+      shell: powershell
+
+
     - name: Output RDP and LocalXpose Details
       run: |
         Write-Output "RDP is now enabled on the Windows VM. Use the following credentials:"
