@@ -21,7 +21,7 @@ jobs:
 
     - name: Add LocalXpose to PATH
       run: |
-        $env:PATH += ";C:\ProgramData\chocolatey\lib\localxpose\tools"
+        $env:PATH += ";C:\ProgramData\chocolatey\bin"
         [System.Environment]::SetEnvironmentVariable('PATH', $env:PATH, [System.EnvironmentVariableTarget]::Machine)
 
     - name: Enable RDP
@@ -51,7 +51,7 @@ jobs:
     - name: Configure LocalXpose for Port Forwarding
       run: |
         # Confirm LocalXpose path and then configure
-        localxpose tcp --local-port 3389 --remote-port 3389 --auth ${{ secrets.LOCALXPOSE_API_KEY }}
+        loclx tcp --local-port 3389 --remote-port 3389 --auth ${{ secrets.LOCALXPOSE_API_KEY }}
 
     - name: Output RDP and LocalXpose Details
       run: |
