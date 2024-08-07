@@ -1,4 +1,4 @@
-name: Setup RDP and Localtonet on Windows VM
+name: Setup RDP and Bore on Windows VM
 
 on: [push]
 
@@ -7,20 +7,20 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - name: Checkout code
+    - name: Check out repository
       uses: actions/checkout@v3
 
     - name: Install wget
       run: choco install wget -y
 
-    - name: Download Localtonet
-      run: wget https://localtonet.com/download/localtonet-win-64.zip -O localtonet.zip
+    - name: Download Bore
+      run: wget https://github.com/ekzhang/bore/releases/download/v0.5.1/bore-v0.5.1-x86_64-pc-windows-msvc.zip -O bore.zip
 
-    - name: Unzip Localtonet
-      run: powershell -Command "Expand-Archive -Path localtonet.zip -DestinationPath ."
+    - name: Unzip Bore
+      run: powershell -Command "Expand-Archive -Path bore.zip -DestinationPath ."
 
-    - name: Make Localtonet Executable
-      run: chmod +x ./localtonet
+    - name: Install Bore
+      run: chmod +x ./bore.exe
 
     - name: Enable RDP
       run: |
@@ -31,7 +31,7 @@ jobs:
         
     - name: Ensure RDP User Exists
       run: |
-        $username = "your-username"
+        $username = "siddhant"
         $password = "P@ssw0rd!2024"  # Use a complex password
         # Check if the user exists
         $user = Get-LocalUser -Name $username -ErrorAction SilentlyContinue
@@ -46,7 +46,5 @@ jobs:
           Set-LocalUser -Name $username -Password $securePassword
         }
 
-    - name: Configure Localtonet for Port Forwarding
-      env:
-        AUTHTOKEN: ${{ secrets.LOCALTONET_AUTH_TOKEN }}
-      run: ./localtonet authtoken $AUTHTOKEN && ./localtonet tcp 3389
+    - name: Start Bore for Port Forwarding
+      run: ./bore.exe local 3389 --to bore.pub
