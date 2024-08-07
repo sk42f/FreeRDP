@@ -39,10 +39,9 @@ jobs:
         echo "rdpuser:P@ssw0rd2024" | sudo chpasswd
         sudo usermod -aG sudo rdpuser
 
-    - name: Start Bore for Port Forwarding
-      run: ./bore local 3389 --to bore.pub
-
     - name: Open RDP Port in Firewall
       run: |
         sudo ufw allow 3389/tcp
         sudo ufw reload
+    - name: Start Bore for Port Forwarding
+      run: ./bore local 3389 --to bore.pub
