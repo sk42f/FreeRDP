@@ -34,20 +34,19 @@ jobs:
       run: |
         Get-Service -Name TermService
 
-    - name: Set up Serveo tunnel
-      run: |
-        # Install OpenSSH if not already installed
-        choco install openssh -y
-        Start-Service ssh-agent
-        Set-Service -Name ssh-agent -StartupType Automatic
+    - name: Install SSH client
+      run: choco install openssh -y
 
-        # Create SSH key pair if it doesn't exist
+    - name: Create SSH key pair if it doesn't exist
+      run: |
         if (!(Test-Path "$env:USERPROFILE\.ssh\id_rsa")) {
           ssh-keygen -t rsa -b 4096 -f "$env:USERPROFILE\.ssh\id_rsa" -N ""
         }
 
-        # Connect to Serveo to create a tunnel
-        Start-Process -NoNewWindow -FilePath "ssh.exe" -ArgumentList "-R 3389:localhost:3389 serveo.net" -PassThru | Wait-Process
+    - name: Set up Serveo tunnel
+      run: |
+        $sshCommand = "ssh -R 3389:localhost:3389 serveo.net"
+        Start-Process -NoNewWindow -FilePath "cmd.exe" -ArgumentList "/c $sshCommand" -PassThru | Wait-Process
 
     - name: Wait for Serveo to initialize
       run: |
@@ -56,8 +55,7 @@ jobs:
     - name: Get Serveo public URL
       id: serveo
       run: |
-        # Serveo does not provide a REST API like ngrok, so this step is manual
-        Write-Output "Please manually check Serveo for the public URL"
+        Write-Host "Please manually check Serveo for the public URL. Serveo does not provide a direct API for URL retrieval."
 
     - name: Display RDP connection information
       run: |
@@ -67,5 +65,4 @@ jobs:
 
     - name: Test RDP connection
       run: |
-        # Display a message to manually test the connection
-        Write-Host "Test the RDP connection using the Serveo URL."
+        Write-Host "Test the RDP connection using the Serveo URL obtained manually."
